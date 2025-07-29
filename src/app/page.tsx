@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Star, Video, Users, Brush } from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -130,6 +131,43 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section className="py-20 px-6 bg-white dark:bg-gray-900">
+  <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12">
+    <motion.div
+      initial={{ opacity: 0, x: -40 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.8 }}
+      className="w-40 h-40 md:w-56 md:h-56 overflow-hidden rounded-full shadow-xl mx-auto md:mx-0"
+    >
+      <Image src="/images/founder.jpg" alt="Merina Giri" width={500} height={600} priority />
+    </motion.div>
+
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.8, delay: 0.2 }}
+      className="space-y-6 text-center md:text-left"
+    >
+      <h2 className="text-3xl font-bold text-purple-700 dark:text-purple-300">
+        Meet Merina Giri, Founder
+      </h2>
+      <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+        Merina Giri founded Sutra from a deep passion for design and community.
+        As a self‑taught creative, she faced the challenge of limited learning
+        resources in Nepal—which inspired her to build a platform for aspiring
+        designers. What started as mentoring a few friends has now grown into a
+        thriving academy serving students globally.
+      </p>
+      <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+        Merina believes that great design comes from fearless creativity and
+        meaningful feedback. Her mission is to empower students through
+        premium video courses, live mentorship, and a supportive design
+        ecosystem. Today, under her leadership, Sutra fosters confidence,
+        community, and real results for hundreds of creative learners.
+      </p>
+    </motion.div>
+  </div>
+</section>
 
       {/* TESTIMONIALS CAROUSEL */}
       <section className="py-20 bg-pink-50 dark:bg-gray-800 px-6">
