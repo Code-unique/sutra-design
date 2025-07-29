@@ -1,44 +1,165 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { Star, Video, Users, Brush } from "lucide-react";
 
 export default function Home() {
+  const { data: session } = useSession();
+  const testimonials = [
+    {
+      name: "Anjali R.",
+      quote:
+        "Sutra changed how I see design. The mentors are amazing and the community is supportive!",
+    },
+    {
+      name: "Sagar M.",
+      quote:
+        "From zero to freelancing designer — all thanks to the structured learning at Sutra!",
+    },
+    {
+      name: "Reema T.",
+      quote:
+        "Every class is full of energy and real knowledge. Best online learning experience ever.",
+    },
+    {
+      name: "Aarav Shrestha",
+      quote:
+        "Sutra completely changed the way I think about design. The classes are top-notch!",
+    },
+    {
+      name: "Sneha Joshi",
+      quote:
+        "Love the mentor interaction! I got personal feedback that really helped me grow.",
+    },
+    {
+      name: "Ramesh Bhandari",
+      quote:
+        "Very easy to use and beautifully designed platform. Highly recommend to creatives.",
+    },
+  ];
+
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % testimonials.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-purple-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6 text-foreground">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-center space-y-6 max-w-2xl"
-      >
-        <h1 className="text-5xl md:text-6xl font-extrabold text-pink-700 dark:text-pink-400 leading-tight tracking-tight">
-          Unleash Your Creativity <br className="hidden md:inline" />
-          with <span className="text-purple-700 dark:text-purple-300">Sutra Designing</span>
-        </h1>
+    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-purple-100 dark:from-gray-900 dark:to-gray-800 text-foreground">
+      {/* HERO */}
+      <section className="flex items-center justify-center p-6 min-h-[90vh]">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center space-y-6 max-w-2xl"
+        >
+          <h1 className="text-5xl md:text-6xl font-extrabold text-pink-700 dark:text-pink-400 leading-tight tracking-tight">
+            Unleash Your Creativity <br className="hidden md:inline" />
+            with <span className="text-purple-700 dark:text-purple-300">Sutra Designing</span>
+          </h1>
 
-        <p className="text-lg md:text-xl text-muted-foreground dark:text-gray-300">
-          Learn from premium video classes, connect with mentors, and bring your designs to life.
-          Sutra is where passion meets precision.
-        </p>
+          <p className="text-lg md:text-xl text-muted-foreground dark:text-gray-300">
+            Learn from premium video classes, connect with mentors, and bring your designs to life.
+            Sutra is where passion meets precision.
+          </p>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-          <Link href="/register" aria-label="Get Started">
-            <Button className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 text-lg rounded-xl shadow-md transition">
-              Get Started
-            </Button>
-          </Link>
-          <Link href="/dashboard" aria-label="Explore Classes">
-            <Button
-              variant="outline"
-              className="text-pink-600 border-pink-500 hover:bg-pink-100 dark:hover:bg-gray-700 px-6 py-3 text-lg rounded-xl transition"
-            >
-              Explore Classes
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+            {!session && (
+              <Link href="/register" aria-label="Get Started">
+                <Button className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 text-lg rounded-xl shadow-md transition">
+                  Get Started
+                </Button>
+              </Link>
+            )}
+            <Link href="/dashboard" aria-label="Explore Classes">
+              <Button
+                variant="outline"
+                className="text-pink-600 border-pink-500 hover:bg-pink-100 dark:hover:bg-gray-700 px-6 py-3 text-lg rounded-xl transition"
+              >
+                Explore Classes
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="py-16 px-6 bg-white dark:bg-gray-900">
+        <div className="max-w-6xl mx-auto text-center space-y-12">
+          <h2 className="text-3xl font-bold text-pink-600 dark:text-pink-300">
+            Why Learn with Sutra?
+          </h2>
+
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
+            {[
+              {
+                icon: <Video className="w-10 h-10 text-pink-500" />,
+                title: "Premium Video Classes",
+                desc: "Step-by-step tutorials taught by experienced mentors.",
+              },
+              {
+                icon: <Brush className="w-10 h-10 text-pink-500" />,
+                title: "Creative Projects",
+                desc: "Build real-world designs to grow your portfolio.",
+              },
+              {
+                icon: <Users className="w-10 h-10 text-pink-500" />,
+                title: "Mentorship Access",
+                desc: "1-on-1 support and live feedback sessions.",
+              },
+              {
+                icon: <Star className="w-10 h-10 text-pink-500" />,
+                title: "Rated 4.9/5",
+                desc: "Loved by over 10,000 creative learners worldwide.",
+              },
+            ].map((item, i) => (
+              <div key={i} className="flex flex-col items-center text-center space-y-4">
+                {item.icon}
+                <h3 className="font-semibold text-lg text-pink-700 dark:text-pink-200">{item.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </motion.div>
+      </section>
+
+      {/* TESTIMONIALS CAROUSEL */}
+      <section className="py-20 bg-pink-50 dark:bg-gray-800 px-6">
+        <div className="max-w-4xl mx-auto text-center space-y-10">
+          <h2 className="text-3xl font-bold text-pink-600 dark:text-pink-300">
+            What Our Students Say
+          </h2>
+
+          <div className="relative h-36 max-w-xl mx-auto px-6">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.6 }}
+                className="absolute inset-0 flex flex-col justify-center bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8"
+              >
+                <p className="text-lg italic text-gray-700 dark:text-gray-300 leading-relaxed">
+                  “{testimonials[current].quote}”
+                </p>
+                <p className="mt-4 text-sm text-pink-700 dark:text-pink-300 font-semibold">
+                  – {testimonials[current].name}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </section>
+
     </main>
   );
 }

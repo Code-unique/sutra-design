@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Facebook, Instagram, Video } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { Facebook, Instagram, Video, MessageSquare } from "lucide-react";
 
 export default function Footer() {
+  const { data: session } = useSession();
+
   return (
     <footer className="w-full bg-pink-600 text-pink-100 mt-16 py-8 px-6">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-sm">
@@ -18,12 +21,24 @@ export default function Footer() {
           <Link href="/dashboard" className="hover:underline">
             Classes
           </Link>
-          <Link href="/register" className="hover:underline">
-            Register
-          </Link>
-          <Link href="/login" className="hover:underline">
-            Login
-          </Link>
+
+          {!session ? (
+            <>
+              <Link href="/register" className="hover:underline">
+                Register
+              </Link>
+              <Link href="/login" className="hover:underline">
+                Login
+              </Link>
+            </>
+          ) : (
+            <button
+              onClick={() => signOut()}
+              className="hover:underline bg-transparent border-none cursor-pointer"
+            >
+              Logout
+            </button>
+          )}
 
           <a
             href="https://www.tiktok.com/@sutradesignacademy"
@@ -56,6 +71,17 @@ export default function Footer() {
           >
             <Instagram className="w-4 h-4" />
             Instagram
+          </a>
+
+          <a
+            href="https://wa.me/9779804304000"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 hover:underline"
+            aria-label="WhatsApp"
+          >
+            <MessageSquare className="w-4 h-4" />
+            WhatsApp
           </a>
         </nav>
       </div>
