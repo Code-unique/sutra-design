@@ -139,7 +139,7 @@ export default function Home() {
       transition={{ duration: 0.8 }}
       className="w-40 h-40 md:w-56 md:h-56 overflow-hidden rounded-full shadow-xl mx-auto md:mx-0"
     >
-      <Image src="/images/founder.jpg" alt="Merina Giri" width={500} height={600} priority />
+      <Image src="/founder.jpg" alt="Merina Giri" width={500} height={600} priority />
     </motion.div>
 
     <motion.div
