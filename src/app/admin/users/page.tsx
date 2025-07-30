@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Loader2, Users } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface AdminUser {
   _id: string;
@@ -17,7 +19,6 @@ interface AdminUser {
   updatedAt: string;
 }
 
-// narrow the session user shape we rely on
 type SessionUserLite = {
   id?: string;
   role?: "admin" | "user";
@@ -27,7 +28,6 @@ type SessionUserLite = {
 
 export default function AdminUsersPage() {
   const { data: session, status } = useSession();
-
   const sessUser = (session?.user as SessionUserLite | undefined) ?? undefined;
   const role = sessUser?.role;
   const selfId = sessUser?.id;
@@ -91,70 +91,110 @@ export default function AdminUsersPage() {
     if (status === "authenticated") void fetchUsers();
   }, [status, fetchUsers]);
 
-  if (status === "loading") return <p className="text-center mt-10">Loading...</p>;
+  // Loading state
+  if (status === "loading") {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="animate-spin text-pink-600 w-8 h-8" />
+      </div>
+    );
+  }
+
   if (!session || role !== "admin") {
-    return <p className="text-center mt-10 text-red-500">Unauthorized – Admins only.</p>;
+    return (
+      <p className="text-center mt-10 text-red-500 font-semibold">
+        Unauthorized – Admins only.
+      </p>
+    );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold text-pink-600 text-center">Users</h1>
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold text-pink-600 text-center flex items-center justify-center gap-2">
+        <Users className="w-6 h-6 text-pink-500" /> Users Management
+      </h1>
 
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {loading ? (
-        <p className="text-center">Loading users...</p>
+        <div className="space-y-4">
+          {[...Array(4)].map((_, idx) => (
+            <div
+              key={idx}
+              className="h-20 bg-gray-200 animate-pulse rounded-lg"
+            />
+          ))}
+        </div>
       ) : users.length === 0 ? (
         <p className="text-center text-muted-foreground">No users found.</p>
       ) : (
         users.map((u) => (
-          <Card key={u._id}>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold">
-                    {u.name || "Unnamed"} <span className="text-muted-foreground">({u.email})</span>
-                  </h2>
-                  <div className="mt-1 flex gap-2">
-                    <Badge variant={u.isPremium ? "default" : "secondary"}>
-                      {u.isPremium ? "Premium" : "Free"}
-                    </Badge>
-                    <Badge variant={u.isAdmin ? "default" : "secondary"}>
-                      {u.isAdmin ? "Admin" : "User"}
-                    </Badge>
+          <motion.div
+            key={u._id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                {/* User info */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold text-lg break-words">
+                      {u.name || "Unnamed"}
+                      <span className="block md:inline md:ml-2 text-sm text-muted-foreground">
+                        ({u.email})
+                      </span>
+                    </h2>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Badge variant={u.isPremium ? "default" : "secondary"}>
+                        {u.isPremium ? "Premium" : "Free"}
+                      </Badge>
+                      <Badge variant={u.isAdmin ? "default" : "secondary"}>
+                        {u.isAdmin ? "Admin" : "User"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <Button
+                      onClick={() => void togglePremium(u)}
+                      className="bg-pink-600 hover:bg-pink-700 w-full sm:w-auto"
+                    >
+                      {u.isPremium ? "Remove Premium" : "Make Premium"}
+                    </Button>
+
+                    <Button
+                      onClick={() => void toggleAdmin(u)}
+                      variant="outline"
+                      className="border-pink-600 text-pink-600 hover:bg-pink-50 w-full sm:w-auto"
+                      disabled={selfId === u._id && u.isAdmin}
+                      title={
+                        selfId === u._id && u.isAdmin
+                          ? "You cannot remove your own admin role"
+                          : "Toggle admin"
+                      }
+                    >
+                      {u.isAdmin ? "Remove Admin" : "Make Admin"}
+                    </Button>
+
+                    <Button
+                      onClick={() => void deleteUser(u)}
+                      className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                      disabled={selfId === u._id}
+                      title={
+                        selfId === u._id
+                          ? "You cannot delete yourself"
+                          : "Delete user"
+                      }
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => void togglePremium(u)}
-                    className="bg-pink-600 hover:bg-pink-700"
-                  >
-                    {u.isPremium ? "Remove Premium" : "Make Premium"}
-                  </Button>
-
-                  <Button
-                    onClick={() => void toggleAdmin(u)}
-                    variant="outline"
-                    className="border-pink-600 text-pink-600 hover:bg-pink-50"
-                    disabled={selfId === u._id && u.isAdmin}
-                    title={selfId === u._id && u.isAdmin ? "You cannot remove your own admin role" : "Toggle admin"}
-                  >
-                    {u.isAdmin ? "Remove Admin" : "Make Admin"}
-                  </Button>
-
-                  <Button
-                    onClick={() => void deleteUser(u)}
-                    className="bg-red-600 hover:bg-red-700"
-                    variant="default"
-                    disabled={selfId === u._id}
-                    title={selfId === u._id ? "You cannot delete yourself" : "Delete user"}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))
       )}
     </div>
