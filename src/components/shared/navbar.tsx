@@ -61,6 +61,11 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
+      <Link href="/admin/users" className="block py-2 px-4 hover:text-pink-500">
+        Users
+      </Link>
+    </li>
+              <li>
                 <Link href="/admin/messages" className="block py-2 px-4 hover:text-pink-500">
                   Conversations
                 </Link>

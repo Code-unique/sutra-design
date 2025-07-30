@@ -7,7 +7,7 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ShieldCheck, Star, PlayCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogTitle  } from "@/components/ui/dialog"; // assuming you have shadcn dialog
-import clsx from "clsx";
+
 
 type LessonType = {
   title: string;
@@ -54,6 +54,9 @@ function VideoThumbnail({ videoUrl, title, onClick }: { videoUrl: string; title:
       role="button"
       aria-label={`Play video for ${title}`}
     >
+      {/*
+  eslint-disable-next-line @next/next/no-img-element
+*/}
       <img
         src={thumbnailUrl}
         alt={`Thumbnail of ${title}`}

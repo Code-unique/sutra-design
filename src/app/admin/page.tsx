@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Trash2Icon, PlusIcon } from "lucide-react";
+import { Trash2Icon, PlusIcon, EditIcon, XIcon } from "lucide-react";
 
 interface Lesson {
   title: string;
@@ -43,6 +43,8 @@ export default function AdminPage() {
     ],
   });
 
+  const [editId, setEditId] = useState<string | null>(null); // Track which class is being edited
+
   useEffect(() => {
     fetchClasses();
   }, []);
@@ -52,8 +54,7 @@ export default function AdminPage() {
     setClasses(res.data);
   };
 
-  const handleCreate = async () => {
-    await axios.post("/api/class/create", form);
+  const resetForm = () => {
     setForm({
       title: "",
       description: "",
@@ -65,12 +66,38 @@ export default function AdminPage() {
         },
       ],
     });
+    setEditId(null);
+  };
+
+  const handleCreate = async () => {
+    await axios.post("/api/class/create", form);
+    resetForm();
+    fetchClasses();
+  };
+
+  const handleUpdate = async () => {
+    if (!editId) return;
+    await axios.patch(`/api/class/update/${editId}`, form);
+    resetForm();
     fetchClasses();
   };
 
   const handleDelete = async (id: string) => {
     await axios.delete(`/api/class/delete/${id}`);
+    // If deleting the currently edited item, reset form
+    if (editId === id) resetForm();
     fetchClasses();
+  };
+
+  const handleEdit = (cls: Class) => {
+    setForm({
+      title: cls.title,
+      description: cls.description,
+      isPremium: cls.isPremium,
+      chapters: cls.chapters.length > 0 ? cls.chapters : [{ title: "", lessons: [{ title: "", description: "", videoUrl: "" }] }],
+    });
+    setEditId(cls._id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -79,7 +106,10 @@ export default function AdminPage() {
 
       <Card>
         <CardContent className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-pink-600">Create Advanced Class</h2>
+          <h2 className="text-xl font-semibold text-pink-600">
+            {editId ? "Edit Class" : "Create Advanced Class"}
+          </h2>
+
           <Input
             placeholder="Class Title"
             value={form.title}
@@ -168,9 +198,32 @@ export default function AdminPage() {
             <PlusIcon className="w-4 h-4 mr-2" /> Add Chapter
           </Button>
 
-          <Button onClick={handleCreate} className="bg-pink-600 hover:bg-pink-700 w-full mt-4">
-            Submit Class
-          </Button>
+          {editId ? (
+            <div className="flex gap-4 mt-4">
+              <Button
+                onClick={handleUpdate}
+                className="bg-pink-600 hover:bg-pink-700 flex-1"
+              >
+                Update Class
+              </Button>
+              <Button
+  onClick={resetForm}
+  variant="outline"
+  className="flex-1 flex items-center justify-center gap-2"
+>
+  <XIcon className="w-4 h-4" />
+  Cancel
+</Button>
+
+            </div>
+          ) : (
+            <Button
+              onClick={handleCreate}
+              className="bg-pink-600 hover:bg-pink-700 w-full mt-4"
+            >
+              Submit Class
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -178,21 +231,34 @@ export default function AdminPage() {
       <div className="space-y-4">
         {classes.map((cls) => (
           <Card key={cls._id}>
-            <CardContent className="p-4 flex justify-between items-start">
-              <div>
+            <CardContent className="p-4 flex justify-between items-start gap-4">
+              <div className="flex-1">
                 <h3 className="text-lg font-semibold">{cls.title}</h3>
                 <p className="text-sm text-muted-foreground">{cls.description}</p>
                 <p className="text-xs text-green-600 mt-1">
                   Access: {cls.isPremium ? "Premium 🔐" : "Free 🌐"}
                 </p>
               </div>
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={() => handleDelete(cls._id)}
-              >
-                <Trash2Icon className="h-4 w-4" />
-              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleEdit(cls)}
+                  aria-label={`Edit class ${cls.title}`}
+                >
+                  <EditIcon className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => handleDelete(cls._id)}
+                  aria-label={`Delete class ${cls.title}`}
+                >
+                  <Trash2Icon className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
