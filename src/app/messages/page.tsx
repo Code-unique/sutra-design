@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Loader2, MessageSquare } from "lucide-react";
-import Image from "next/image";
 
 type MessageType = {
   senderId: string;
@@ -39,8 +38,9 @@ export default function MessagePage() {
       setMessages(res.data);
       setError("");
       setTimeout(scrollToBottom, 200);
-    } catch (err) {
+    } catch (error) {
       setError("Failed to load messages. Please try again later.");
+      console.error("Error fetching messages:", error);
     } finally {
       setLoading(false);
     }
@@ -65,8 +65,9 @@ export default function MessagePage() {
       );
       setNewMessage("");
       void fetchMessages();
-    } catch {
+    } catch (error) {
       setError("Failed to send message. Please try again.");
+      console.error("Error sending message:", error);
     }
   };
 
