@@ -42,7 +42,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Cloudflare error", details: data }, { status: 500 });
     }
 
-    return NextResponse.json(data.result);
+    return NextResponse.json({
+  uploadURL: data.result.uploadURL,
+  uid: data.result.uid,
+});
+
   } catch (err: unknown) {
     const error = err as Error;
     return NextResponse.json({ error: "server error", details: error.message }, { status: 500 });
