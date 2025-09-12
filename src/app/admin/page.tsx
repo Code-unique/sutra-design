@@ -195,19 +195,19 @@ export default function AdminPage() {
       const data = await res.json();
       const { uploadURL, uid } = data;
 
-      // Step 2: Upload with progress
-      const formData = new FormData();
-      formData.append("file", file);
+      // Step 2: Upload directly to Cloudflare with PUT
+await axios.put(uploadURL, file, {
+  headers: {
+    "Content-Type": file.type || "application/octet-stream",
+  },
+  onUploadProgress: (progressEvent) => {
+    if (progressEvent.total) {
+      const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+      setUploadProgress(prev => ({ ...prev, [upKey]: percent }));
+    }
+  },
+});
 
-      await axios.post(uploadURL, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(prev => ({ ...prev, [upKey]: percent }));
-          }
-        },
-      });
 
       // Step 3: Set video URL in form
       const chapters = [...form.chapters];
