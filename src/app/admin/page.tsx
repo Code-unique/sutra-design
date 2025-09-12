@@ -453,9 +453,6 @@ await axios.put(uploadURL, file, {
                                 onChange={(ev) => {
                                   const file = ev.target.files?.[0];
                                   if (!file) return;
-                                  if (file.size > 200 * 1024 * 1024) {
-                                    if (!confirm("File is larger than 200MB. Continue?")) return;
-                                  }
                                   handleFileSelect(file, chIdx, lsIdx);
                                 }}
                                 disabled={loading || isUploading}
