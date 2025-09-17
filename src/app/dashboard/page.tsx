@@ -5,9 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, ShieldCheck, Star, PlayCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogTitle  } from "@/components/ui/dialog"; // assuming you have shadcn dialog
-
+import { Loader2, ShieldCheck, Star, PlayCircle, ChevronDown, ChevronUp, Lock, Unlock } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogTitle } from "@/components/ui/dialog";
 
 type LessonType = {
   title: string;
@@ -38,7 +37,7 @@ function getYouTubeId(url: string) {
   return match ? match[1] : null;
 }
 
-function VideoThumbnail({ videoUrl, title, onClick }: { videoUrl: string; title: string; onClick: () => void }) {
+function VideoThumbnail({ videoUrl, title, onClick, isLocked }: { videoUrl: string; title: string; onClick: () => void; isLocked?: boolean }) {
   const videoId = getYouTubeId(videoUrl);
   if (!videoId) return null;
 
@@ -46,27 +45,35 @@ function VideoThumbnail({ videoUrl, title, onClick }: { videoUrl: string; title:
 
   return (
     <div
-      onClick={onClick}
-      className="relative cursor-pointer group rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
-      title={`Play: ${title}`}
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onClick()}
-      role="button"
-      aria-label={`Play video for ${title}`}
+      onClick={!isLocked ? onClick : undefined}
+      className={`relative rounded-lg overflow-hidden shadow-lg transition-all duration-300 ${
+        isLocked 
+          ? "cursor-not-allowed opacity-70 grayscale" 
+          : "cursor-pointer group hover:shadow-xl hover:scale-[1.02]"
+      }`}
+      title={isLocked ? "Premium content - upgrade to access" : `Play: ${title}`}
+      tabIndex={!isLocked ? 0 : -1}
+      onKeyDown={(e) => !isLocked && e.key === "Enter" && onClick()}
+      role={!isLocked ? "button" : undefined}
+      aria-label={isLocked ? "Premium content locked" : `Play video for ${title}`}
     >
-      {/*
-  eslint-disable-next-line @next/next/no-img-element
-*/}
       <img
         src={thumbnailUrl}
         alt={`Thumbnail of ${title}`}
         className="w-full aspect-video object-cover"
         loading="lazy"
       />
-      <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-50 transition" />
-      <PlayCircle
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-90 group-hover:opacity-100 w-16 h-16 drop-shadow-lg"
-      />
+      <div className={`absolute inset-0 transition ${
+        isLocked ? "bg-gray-800 bg-opacity-70" : "bg-black bg-opacity-30 group-hover:bg-opacity-50"
+      }`} />
+      {isLocked ? (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white">
+          <Lock className="w-10 h-10 mb-2 mx-auto" />
+          <span className="text-sm font-medium block text-center">Premium Content</span>
+        </div>
+      ) : (
+        <PlayCircle className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-90 group-hover:opacity-100 w-16 h-16 drop-shadow-lg transition-transform group-hover:scale-110" />
+      )}
     </div>
   );
 }
@@ -79,8 +86,8 @@ function VideoModal({ videoUrl, title, open, onOpenChange }: { videoUrl: string;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 max-w-4xl max-h-[60vh] sm:max-h-[80vh] rounded-xl overflow-hidden bg-black">
-        <DialogTitle className="sr-only">{title}</DialogTitle> {/* Visually hidden but accessible */}
+      <DialogContent className="p-0 max-w-4xl max-h-[60vh] sm:max-h-[80vh] rounded-xl overflow-hidden bg-black border-0">
+        <DialogTitle className="sr-only">{title}</DialogTitle>
         <iframe
           width="100%"
           height="100%"
@@ -90,6 +97,9 @@ function VideoModal({ videoUrl, title, open, onOpenChange }: { videoUrl: string;
           allowFullScreen
           className="aspect-video"
         />
+        <DialogClose className="absolute top-4 right-4 z-50 rounded-full bg-black bg-opacity-50 p-2 text-white hover:bg-opacity-80 transition hover:scale-110">
+          ✕
+        </DialogClose>
       </DialogContent>
     </Dialog>
   );
@@ -103,7 +113,6 @@ export default function DashboardPage() {
   const [expandedChapters, setExpandedChapters] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
 
-  // For modal state (which lesson is open)
   const [openVideo, setOpenVideo] = useState<{ classId: string; chapterIdx: number; lessonIdx: number } | null>(null);
 
   const user = session?.user as UserType;
@@ -150,136 +159,178 @@ export default function DashboardPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="h-screen flex justify-center items-center bg-white">
-        <Loader2 className="animate-spin text-pink-600 w-10 h-10" />
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-pink-50 to-purple-50">
+        <div className="text-center">
+          <Loader2 className="animate-spin text-pink-600 w-12 h-12 mx-auto mb-4" />
+          <p className="text-gray-600">Loading your classes...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <h1 className="text-4xl font-bold text-center text-pink-700 mb-8">📚 Sutra Design Classes</h1>
-
-      {isAdmin && (
-        <div className="flex items-center gap-3 p-4 border border-yellow-300 bg-yellow-50 rounded-md shadow-sm">
-          <ShieldCheck className="w-5 h-5 text-yellow-600" />
-          <span className="text-sm text-yellow-700 font-medium">
-            Admin Mode: Viewing all classes including premium.
-          </span>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 px-4">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-3">
+            📚 Sutra Design Academy
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Master the art of design with our comprehensive courses and expert-led tutorials
+          </p>
         </div>
-      )}
 
-      {!isAdmin && (
-        <div className="p-4 border bg-pink-50 rounded-md text-center shadow-sm">
-          {userIsPremium ? (
-            <span className="text-green-600 font-medium flex justify-center items-center gap-2">
-              <Star className="w-4 h-4 text-green-500" />
-              Premium Access Active – Enjoy All Content!
+        {isAdmin && (
+          <div className="flex items-center gap-3 p-4 border border-yellow-300 bg-yellow-50 rounded-lg shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+            <span className="text-sm text-yellow-700 font-medium">
+              Admin Mode: Viewing all classes including premium content.
             </span>
-          ) : (
-            <span className="text-yellow-700 font-medium">
-              ⏳ Your premium is under review.{" "}
-              <a className="text-black underline hover:text-pink-600" href="/apply">
-                Apply now
-              </a>{" "}
-              if you haven&apos;t.
-            </span>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {visibleClasses.length === 0 && (
-        <div className="text-center text-gray-400 py-10 text-lg">
-          No classes available for your access level yet.
-        </div>
-      )}
-
-      {visibleClasses.map((cls) => (
-        <Card
-          key={cls._id}
-          className="rounded-xl border shadow-md hover:shadow-lg transition bg-white"
-        >
-          <CardContent className="p-6 space-y-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-pink-700">{cls.title}</h2>
-              <p className="text-gray-600 mt-1">{cls.description}</p>
-              <span className="inline-block mt-2 text-xs text-pink-500 font-medium select-none">
-                {cls.isPremium ? "🔐 Premium Class" : "🌐 Free Class"}
+        {!isAdmin && (
+          <div className="p-4 border border-pink-200 bg-white rounded-lg shadow-sm text-center">
+            {userIsPremium ? (
+              <span className="text-green-700 font-medium flex justify-center items-center gap-2">
+                <Star className="w-5 h-5 text-green-500" />
+                Premium Access Active – Enjoy All Content!
               </span>
+            ) : (
+              <span className="text-gray-700">
+                ⏳ Your premium status is under review.{" "}
+                <a className="text-pink-600 underline hover:text-pink-700 font-medium" href="/apply">
+                  Apply now
+                </a>{" "}
+                if you haven&apos;t already.
+              </span>
+            )}
+          </div>
+        )}
+
+        {visibleClasses.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Unlock className="w-8 h-8 text-gray-400" />
             </div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No classes available yet</h3>
+            <p className="text-gray-500 max-w-md mx-auto">
+              {isAdmin 
+                ? "Create some classes to get started!" 
+                : "Check back soon for new content or upgrade to premium for full access."
+              }
+            </p>
+          </div>
+        )}
 
-            {cls.chapters?.map((chapter, chIdx) => {
-              const key = `${cls._id}-${chIdx}`;
-              const isExpanded = expandedChapters[key];
-
-              return (
-                <div key={chIdx} className="border-t pt-4">
-                  <button
-                    onClick={() => toggleChapter(cls._id, chIdx)}
-                    className="w-full flex justify-between items-center text-left text-pink-600 font-semibold hover:text-pink-800 transition"
-                    aria-expanded={isExpanded}
-                    aria-controls={`chapter-content-${key}`}
-                  >
-                    <span>📁 Chapter {chIdx + 1}: {chapter.title}</span>
-                    <span className="text-sm select-none">{isExpanded ? "− Hide" : "+ Show"}</span>
-                  </button>
-
-                  {isExpanded && (
-                    <div id={`chapter-content-${key}`} className="mt-3 space-y-4 pl-4">
-                      {chapter.lessons?.map((lesson, lsIdx) => {
-                        const videoOpen = openVideo &&
-                          openVideo.classId === cls._id &&
-                          openVideo.chapterIdx === chIdx &&
-                          openVideo.lessonIdx === lsIdx;
-
-                        return (
-                          <div
-                            key={lsIdx}
-                            className="bg-pink-50 rounded-md border p-4 flex flex-col md:flex-row items-center gap-4 shadow-sm hover:shadow-md transition"
-                          >
-                            <VideoThumbnail
-                              videoUrl={lesson.videoUrl}
-                              title={lesson.title}
-                              onClick={() => openLessonVideo(cls._id, chIdx, lsIdx)}
-                            />
-
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-black text-lg truncate">{lesson.title}</h4>
-                              <p className="text-gray-600 text-sm line-clamp-3">{lesson.description}</p>
-                            </div>
-
-                            <Dialog open={videoOpen} onOpenChange={closeVideo}>
-                              <DialogTrigger asChild>
-                                {/* Invisible, since we open modal via thumbnail */}
-                                <button className="sr-only">Open video modal</button>
-                              </DialogTrigger>
-                              <VideoModal
-                                videoUrl={lesson.videoUrl}
-                                title={lesson.title}
-                                open={videoOpen}
-                                onOpenChange={closeVideo}
-                              />
-                              <DialogClose asChild>
-                                <button
-                                  className="absolute top-4 right-4 z-50 rounded-full bg-black bg-opacity-50 p-2 text-white hover:bg-opacity-80 transition"
-                                  aria-label="Close video"
-                                  onClick={closeVideo}
-                                >
-                                  ✕
-                                </button>
-                              </DialogClose>
-                            </Dialog>
-                          </div>
-                        );
-                      })}
+        <div className="grid gap-6">
+          {visibleClasses.map((cls) => (
+            <Card
+              key={cls._id}
+              className="rounded-xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden"
+            >
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-800">{cls.title}</h2>
+                      <p className="text-gray-600 mt-1">{cls.description}</p>
                     </div>
-                  )}
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                      cls.isPremium 
+                        ? "bg-pink-100 text-pink-700" 
+                        : "bg-green-100 text-green-700"
+                    }`}>
+                      {cls.isPremium ? (
+                        <>
+                          <Lock className="w-3 h-3" />
+                          Premium
+                        </>
+                      ) : (
+                        <>
+                          <Unlock className="w-3 h-3" />
+                          Free
+                        </>
+                      )}
+                    </span>
+                  </div>
                 </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      ))}
+
+                {cls.chapters?.map((chapter, chIdx) => {
+                  const key = `${cls._id}-${chIdx}`;
+                  const isExpanded = expandedChapters[key];
+                  const ChevronIcon = isExpanded ? ChevronUp : ChevronDown;
+
+                  return (
+                    <div key={chIdx} className="border-t pt-4">
+                      <button
+                        onClick={() => toggleChapter(cls._id, chIdx)}
+                        className="w-full flex justify-between items-center text-left p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                        aria-expanded={isExpanded}
+                        aria-controls={`chapter-content-${key}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                            {chIdx + 1}
+                          </div>
+                          <span className="font-semibold text-gray-800">
+                            {chapter.title}
+                          </span>
+                        </div>
+                        <ChevronIcon className="w-5 h-5 text-gray-400 transition-transform" />
+                      </button>
+
+                      {isExpanded && (
+                        <div id={`chapter-content-${key}`} className="mt-4 space-y-4 pl-11">
+                          {chapter.lessons?.map((lesson, lsIdx) => {
+                            const videoOpen = openVideo &&
+                              openVideo.classId === cls._id &&
+                              openVideo.chapterIdx === chIdx &&
+                              openVideo.lessonIdx === lsIdx;
+
+                            const isLessonLocked = cls.isPremium && !userIsPremium && !isAdmin;
+
+                            return (
+                              <div
+                                key={lsIdx}
+                                className="bg-gray-50 rounded-lg border p-4 flex flex-col md:flex-row items-start gap-4 shadow-sm hover:shadow-md transition-all"
+                              >
+                                <VideoThumbnail
+                                  videoUrl={lesson.videoUrl}
+                                  title={lesson.title}
+                                  onClick={() => openLessonVideo(cls._id, chIdx, lsIdx)}
+                                  isLocked={isLessonLocked}
+                                />
+
+                                <div className="flex-1 min-w-0 space-y-2">
+                                  <h4 className="font-semibold text-gray-800 text-lg">{lesson.title}</h4>
+                                  <p className="text-gray-600 text-sm">{lesson.description}</p>
+                                  {isLessonLocked && (
+                                    <p className="text-pink-600 text-sm font-medium">
+                                      Upgrade to premium to access this lesson
+                                    </p>
+                                  )}
+                                </div>
+
+                                <VideoModal
+                                  videoUrl={lesson.videoUrl}
+                                  title={lesson.title}
+                                  open={!!videoOpen}
+                                  onOpenChange={closeVideo}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
