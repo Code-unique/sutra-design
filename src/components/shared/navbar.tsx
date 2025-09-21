@@ -38,15 +38,13 @@ export default function Navbar() {
               Dashboard
             </Link>
           </li>
+          <li>
+            <Link href="/profile" className="block py-2 px-4 hover:text-pink-500">
+              profile
+            </Link>
+          </li>
 
-          {/* Show "Messages" only for non-admin logged-in users */}
-          {session && !isAdmin && (
-            <li>
-              <Link href="/messages" className="block py-2 px-4 hover:text-pink-500">
-                Messages
-              </Link>
-            </li>
-          )}
+    
 
           {isAdmin && (
             <>
@@ -55,21 +53,14 @@ export default function Navbar() {
                   Admin
                 </Link>
               </li>
-              <li>
-                <Link href="/admin/applications" className="block py-2 px-4 hover:text-pink-500">
-                  Applications
-                </Link>
-              </li>
+              
               <li>
       <Link href="/admin/users" className="block py-2 px-4 hover:text-pink-500">
         Users
       </Link>
     </li>
-              <li>
-                <Link href="/admin/messages" className="block py-2 px-4 hover:text-pink-500">
-                  Conversations
-                </Link>
-              </li>
+          
+              
             </>
           )}
 

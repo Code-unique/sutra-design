@@ -199,10 +199,7 @@ export default function DashboardPage() {
             ) : (
               <span className="text-gray-700">
                 ⏳ Your premium status is under review.{" "}
-                <a className="text-pink-600 underline hover:text-pink-700 font-medium" href="/apply">
-                  Apply now
-                </a>{" "}
-                if you haven&apos;t already.
+                
               </span>
             )}
           </div>

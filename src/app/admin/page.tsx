@@ -251,13 +251,18 @@ export default function AdminPage() {
                 </Button>
 
                 <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => handleDelete(cls._id)}
-                  aria-label={`Delete class ${cls.title}`}
-                >
-                  <Trash2Icon className="h-4 w-4" />
-                </Button>
+  variant="destructive"
+  size="icon"
+  onClick={() => {
+    if (window.confirm(`Are you sure you want to delete "${cls.title}"? This action cannot be undone.`)) {
+      handleDelete(cls._id);
+    }
+  }}
+  aria-label={`Delete class ${cls.title}`}
+>
+  <Trash2Icon className="h-4 w-4" />
+</Button>
+
               </div>
             </CardContent>
           </Card>
